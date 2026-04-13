@@ -17,11 +17,17 @@ def connect_to_arduino(port='COM3', baud_rate=9600):
     Change COM3 to the correct port on your computer.
     """
     ser = serial.Serial(port, baud_rate, timeout=2)
-    time.sleep(2)  # gives Arduino time to reset after connection
+    time.sleep(2)  # Gives Arduino time to reset after connection
     return ser
 
 
 def get_sensor_data(ser):
+    """
+    Expected Arduino data format:
+    heart_rate,blood_oxygen,bgl
+    Example:
+    85,98,110
+    """
     line = ser.readline().decode('utf-8').strip()
 
     if not line:
@@ -29,13 +35,14 @@ def get_sensor_data(ser):
 
     parts = line.split(',')
 
-    if len(parts) != 2:
+    if len(parts) != 3:
         raise ValueError(f"Unexpected data format: {line}")
 
     heart_rate = int(parts[0])
     blood_oxygen = int(parts[1])
+    bgl = int(parts[2])
 
-    return heart_rate, blood_oxygen
+    return heart_rate, blood_oxygen, bgl
 
 
 def get_heart_rate_zone(age, heart_rate):
@@ -49,19 +56,46 @@ def get_heart_rate_zone(age, heart_rate):
     elif moderate_high <= heart_rate <= vigorous_high:
         zone = "Vigorous Exercise"
     else:
-        zone = "Outside moderate/vigorous range"
+        zone = "RHR"
 
     return max_heart_rate, moderate_low, moderate_high, vigorous_high, zone
 
 
+def bgl_thresh_zones(zone):
+    if zone == "RHR":
+        top_thresh = 200
+        bottom_thresh = 70
+    elif zone == "Moderate Exercise":
+        top_thresh = 220
+        bottom_thresh = 100
+    else:  
+        top_thresh = 180
+        bottom_thresh = 120
+
+    return top_thresh, bottom_thresh
+
+
+def get_bgl_warning(bgl_data, top_thresh, bottom_thresh):
+    if bgl_data >= top_thresh:
+        return "Hyper Attack!"
+    elif bgl_data <= bottom_thresh:
+        return "Hypo Attack!"
+    else:
+        return "You're not dying! Yippeeeeee!"
+
+
 def main():
     age, weight, height, diabetes_type = get_user_inputs()
-    ser = connect_to_arduino(port='COM3', baud_rate=9600)
+
+    print("\nConnecting to Arduino...")
+    ser = connect_to_arduino()
 
     try:
-        heart_rate, blood_oxygen = get_sensor_data(ser)
+        heart_rate, blood_oxygen, bgl_data = get_sensor_data(ser)
 
         max_hr, mod_low, mod_high, vig_high, zone = get_heart_rate_zone(age, heart_rate)
+        top_thresh, bottom_thresh = bgl_thresh_zones(zone)
+        warning = get_bgl_warning(bgl_data, top_thresh, bottom_thresh)
 
         print("\n--- User Information ---")
         print(f"Age: {age}")
@@ -72,15 +106,23 @@ def main():
         print("\n--- Sensor Readings ---")
         print(f"Heart Rate: {heart_rate} bpm")
         print(f"Blood Oxygen: {blood_oxygen}%")
+        print(f"Blood Glucose Level: {bgl_data} mg/dL")
 
-        print("\n--- Heart Rate Zones ---")
-        print(f"Estimated Max Heart Rate: {max_hr:.0f} bpm")
-        print(f"Moderate Exercise Zone: {mod_low:.1f} - {mod_high:.1f} bpm")
-        print(f"Vigorous Exercise Zone: {mod_high:.1f} - {vig_high:.1f} bpm")
-        print(f"Current Activity Level: {zone}")
+        print("\n--- Heart Rate Zone Info ---")
+        print(f"Estimated Max Heart Rate: {max_hr:.1f} bpm")
+        print(f"Moderate Zone: {mod_low:.1f} - {mod_high:.1f} bpm")
+        print(f"Vigorous Zone: {mod_high:.1f} - {vig_high:.1f} bpm")
+        print(f"Current Zone: {zone}")
 
-    except Exception as e:
-        print(f"Error reading sensor data: {e}")
+        print("\n--- BGL Thresholds for This Zone ---")
+        print(f"Low Threshold: {bottom_thresh} mg/dL")
+        print(f"High Threshold: {top_thresh} mg/dL")
+
+        print("\n--- Warning Status ---")
+        print(warning)
+
+    except ValueError as e:
+        print(f"Error: {e}")
 
     finally:
         ser.close()
