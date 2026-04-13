@@ -60,17 +60,42 @@ def get_heart_rate_zone(age, heart_rate):
 
     return max_heart_rate, moderate_low, moderate_high, vigorous_high, zone
 
+def get_spo2_data(spo2_data):
+    if 92 < spo2_data <= 97.5
+        spo2_zone = "high"
+    elif 97.5 < spo2_data <=98.5
+        spo2_zone = "Rest"
+    else 98.5 < spo2_data <= 100
+        spo2_zone = "anaero"
 
 def bgl_thresh_zones(zone):
-    if zone == "RHR":
-        top_thresh = 200
-        bottom_thresh = 70
-    elif zone == "Moderate Exercise":
-        top_thresh = 220
-        bottom_thresh = 100
-    else:  
+    if zone == "Vigorous Exercise" and spo2_zone == "high" 
         top_thresh = 180
         bottom_thresh = 120
+    elif zone == "Vigorous Exercise" and spo2_zone == "Rest" 
+        top_thresh = 180
+        bottom_thresh = 120
+    elif zone == "Vigorous Exercise" and spo2_zone == "anaero" 
+        top_thresh = 180
+        bottom_thresh = 100
+    elif zone == "Moderate Exercise" and spo2_zone == "high" 
+        top_thresh = 220
+        bottom_thresh = 100
+    elif zone == "Moderate Exercise" and spo2_zone == "Rest" 
+        top_thresh = 220
+        bottom_thresh = 100
+    elif zone == "Moderate Exercise" and spo2_zone == "anaero" 
+        top_thresh = 200
+        bottom_thresh = 70
+    elif zone == "RHR" and spo2 == "high" 
+        top_thresh = 200
+        bottom_thresh = 100
+    elif zone == "RHR" and spo2 == "Rest" 
+        top_thresh = 200
+        bottom_thresh = 70
+    else:  
+        top_thresh = 200
+        bottom_thresh = 70
 
     return top_thresh, bottom_thresh
 
