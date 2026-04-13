@@ -17,7 +17,7 @@ def connect_to_arduino(port='COM3', baud_rate=9600):
     Change COM3 to the correct port on your computer.
     """
     ser = serial.Serial(port, baud_rate, timeout=2)
-    time.sleep(2)  # Gives Arduino time to reset after connection
+    time.sleep(2)
     return ser
 
 
@@ -39,7 +39,7 @@ def get_sensor_data(ser):
         raise ValueError(f"Unexpected data format: {line}")
 
     heart_rate = int(parts[0])
-    blood_oxygen = int(parts[1])
+    blood_oxygen = float(parts[1])
     bgl = int(parts[2])
 
     return heart_rate, blood_oxygen, bgl
@@ -60,40 +60,46 @@ def get_heart_rate_zone(age, heart_rate):
 
     return max_heart_rate, moderate_low, moderate_high, vigorous_high, zone
 
-def get_spo2_data(spo2_data):
-    if 92 < spo2_data <= 97.5
-        spo2_zone = "high"
-    elif 97.5 < spo2_data <=98.5
-        spo2_zone = "Rest"
-    else 98.5 < spo2_data <= 100
-        spo2_zone = "anaero"
 
-def bgl_thresh_zones(zone):
-    if zone == "Vigorous Exercise" and spo2_zone == "high" 
+def get_spo2_zone(spo2_data):
+    if 92 < spo2_data <= 97.5:
+        spo2_zone = "high"
+    elif 97.5 < spo2_data <= 98.5:
+        spo2_zone = "Rest"
+    elif 98.5 < spo2_data <= 100:
+        spo2_zone = "anaero"
+    else:
+        spo2_zone = "unknown"
+
+    return spo2_zone
+
+
+def bgl_thresh_zones(hr_zone, spo2_zone):
+    if hr_zone == "Vigorous Exercise" and spo2_zone == "high":
         top_thresh = 180
         bottom_thresh = 120
-    elif zone == "Vigorous Exercise" and spo2_zone == "Rest" 
+    elif hr_zone == "Vigorous Exercise" and spo2_zone == "Rest":
         top_thresh = 180
         bottom_thresh = 120
-    elif zone == "Vigorous Exercise" and spo2_zone == "anaero" 
+    elif hr_zone == "Vigorous Exercise" and spo2_zone == "anaero":
         top_thresh = 180
         bottom_thresh = 100
-    elif zone == "Moderate Exercise" and spo2_zone == "high" 
+    elif hr_zone == "Moderate Exercise" and spo2_zone == "high":
         top_thresh = 220
         bottom_thresh = 100
-    elif zone == "Moderate Exercise" and spo2_zone == "Rest" 
+    elif hr_zone == "Moderate Exercise" and spo2_zone == "Rest":
         top_thresh = 220
         bottom_thresh = 100
-    elif zone == "Moderate Exercise" and spo2_zone == "anaero" 
+    elif hr_zone == "Moderate Exercise" and spo2_zone == "anaero":
         top_thresh = 200
         bottom_thresh = 70
-    elif zone == "RHR" and spo2 == "high" 
+    elif hr_zone == "RHR" and spo2_zone == "high":
         top_thresh = 200
         bottom_thresh = 100
-    elif zone == "RHR" and spo2 == "Rest" 
+    elif hr_zone == "RHR" and spo2_zone == "Rest":
         top_thresh = 200
         bottom_thresh = 70
-    else:  
+    else:
         top_thresh = 200
         bottom_thresh = 70
 
@@ -118,8 +124,9 @@ def main():
     try:
         heart_rate, blood_oxygen, bgl_data = get_sensor_data(ser)
 
-        max_hr, mod_low, mod_high, vig_high, zone = get_heart_rate_zone(age, heart_rate)
-        top_thresh, bottom_thresh = bgl_thresh_zones(zone)
+        max_hr, mod_low, mod_high, vig_high, hr_zone = get_heart_rate_zone(age, heart_rate)
+        spo2_zone = get_spo2_zone(blood_oxygen)
+        top_thresh, bottom_thresh = bgl_thresh_zones(hr_zone, spo2_zone)
         warning = get_bgl_warning(bgl_data, top_thresh, bottom_thresh)
 
         print("\n--- User Information ---")
@@ -137,9 +144,12 @@ def main():
         print(f"Estimated Max Heart Rate: {max_hr:.1f} bpm")
         print(f"Moderate Zone: {mod_low:.1f} - {mod_high:.1f} bpm")
         print(f"Vigorous Zone: {mod_high:.1f} - {vig_high:.1f} bpm")
-        print(f"Current Zone: {zone}")
+        print(f"Current Heart Rate Zone: {hr_zone}")
 
-        print("\n--- BGL Thresholds for This Zone ---")
+        print("\n--- Blood Oxygen Zone Info ---")
+        print(f"Current SpO2 Zone: {spo2_zone}")
+
+        print("\n--- BGL Thresholds for These Zones ---")
         print(f"Low Threshold: {bottom_thresh} mg/dL")
         print(f"High Threshold: {top_thresh} mg/dL")
 
