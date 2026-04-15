@@ -11,38 +11,38 @@ def get_user_inputs():
     return age, weight, height, diabetes_type
 
 
-def connect_to_arduino(port='COM3', baud_rate=9600):
+#def connect_to_arduino(port='COM3', baud_rate=9600):
     """
     Opens serial connection to Arduino.
     Change COM3 to the correct port on your computer.
     """
-    ser = serial.Serial(port, baud_rate, timeout=2)
-    time.sleep(2)
-    return ser
+   # ser = serial.Serial(port, baud_rate, timeout=2)
+    #time.sleep(2)
+    #return ser
 
 
-def get_sensor_data(ser):
+#def get_sensor_data(ser):
     """
     Expected Arduino data format:
     heart_rate,blood_oxygen,bgl
     Example:
     85,98,110
     """
-    line = ser.readline().decode('utf-8').strip()
+ #   line = ser.readline().decode('utf-8').strip()
 
-    if not line:
-        raise ValueError("No data received from Arduino.")
+  #  if not line:
+   #     raise ValueError("No data received from Arduino.")
 
-    parts = line.split(',')
+    #parts = line.split(',')
 
-    if len(parts) != 3:
-        raise ValueError(f"Unexpected data format: {line}")
+    #if len(parts) != 3:
+     #   raise ValueError(f"Unexpected data format: {line}")
 
-    heart_rate = int(parts[0])
-    blood_oxygen = float(parts[1])
-    bgl = int(parts[2])
+    #heart_rate = int(parts[0])
+    #blood_oxygen = float(parts[1])
+   # bgl = int(parts[2])
 
-    return heart_rate, blood_oxygen, bgl
+  #  return heart_rate, blood_oxygen, bgl
 
 
 def get_heart_rate_zone(age, heart_rate):
@@ -76,32 +76,32 @@ def get_spo2_zone(spo2_data):
 
 def bgl_thresh_zones(hr_zone, spo2_zone):
     if hr_zone == "Vigorous Exercise" and spo2_zone == "high":
-        top_thresh = 180
-        bottom_thresh = 120
+        top_thresh = 126
+        bottom_thresh = 90
     elif hr_zone == "Vigorous Exercise" and spo2_zone == "Rest":
         top_thresh = 180
-        bottom_thresh = 120
+        bottom_thresh = 126
     elif hr_zone == "Vigorous Exercise" and spo2_zone == "anaero":
-        top_thresh = 180
-        bottom_thresh = 100
+        top_thresh = 126
+        bottom_thresh = 90
     elif hr_zone == "Moderate Exercise" and spo2_zone == "high":
-        top_thresh = 220
-        bottom_thresh = 100
+        top_thresh = 126
+        bottom_thresh = 90
     elif hr_zone == "Moderate Exercise" and spo2_zone == "Rest":
-        top_thresh = 220
-        bottom_thresh = 100
+        top_thresh = 180
+        bottom_thresh = 126
     elif hr_zone == "Moderate Exercise" and spo2_zone == "anaero":
-        top_thresh = 200
-        bottom_thresh = 70
+        top_thresh = 180
+        bottom_thresh = 126
     elif hr_zone == "RHR" and spo2_zone == "high":
         top_thresh = 200
-        bottom_thresh = 100
+        bottom_thresh = 80
     elif hr_zone == "RHR" and spo2_zone == "Rest":
         top_thresh = 200
-        bottom_thresh = 70
+        bottom_thresh = 80
     else:
         top_thresh = 200
-        bottom_thresh = 70
+        bottom_thresh = 80
 
     return top_thresh, bottom_thresh
 
@@ -122,7 +122,9 @@ def main():
     ser = connect_to_arduino()
 
     try:
-        heart_rate, blood_oxygen, bgl_data = get_sensor_data(ser)
+        heart_rate = 
+        blood_oxygen =  
+        bgl_data = 
 
         max_hr, mod_low, mod_high, vig_high, hr_zone = get_heart_rate_zone(age, heart_rate)
         spo2_zone = get_spo2_zone(blood_oxygen)
