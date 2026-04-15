@@ -122,9 +122,9 @@ def main():
     ser = connect_to_arduino()
 
     try:
-        heart_rate = 
-        blood_oxygen =  
-        bgl_data = 
+        heart_rate = 144
+        blood_oxygen = 94
+        bgl_data = 155
 
         max_hr, mod_low, mod_high, vig_high, hr_zone = get_heart_rate_zone(age, heart_rate)
         spo2_zone = get_spo2_zone(blood_oxygen)
